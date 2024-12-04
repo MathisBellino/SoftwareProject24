@@ -1,41 +1,57 @@
+/*
+ * main.c
+ * Part of CNC Plotter Project for MMME3085
+ * 
+ * Purpose: Main control program for the CNC text plotting system.
+ *          Manages user input, font loading, text processing, and robot communication.
+ *          Includes robust error handling and adheres to coding best practices.
+ * 
+ * Author: [Mathis Bellino]
+ * Student ID: [20342807]
+ * Date: December 2024
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <stdbool.h>  // For true/false definitions
 #include <conio.h>
 #include "font.h"
-#include "ui.h"
 #include "serial.h"
 #include <windows.h>
 #include <time.h>
 
+/* Constants */
 #define bdrate 115200
+#define MIN_HEIGHT 4.0f
+#define MAX_HEIGHT 10.0f
+#define BUFFER_SIZE 100
+#define FILENAME_SIZE 256
 
-void SendCommands(char* buffer);
-int processTextFile(const char* filename, struct FontData* font, float height);
-void processWord(const char* word, struct FontData* font, float* currentX, float* currentY, float height);
-
+/* Function Prototypes */
+void SendCommands(char* buffer);  // Sends G-code commands to the robot
+int processTextFile(const char* filename, struct FontData* font, float height);  // Processes text for plotting
 
 int main() {
-    char buffer[100];
-    float height;
-    struct FontData* font = NULL;
-    char textFilename[256];
-    char fontFilename[256];
+    char buffer[BUFFER_SIZE];  // Buffer for G-code commands
+    float height;              // Text height input by the user
+    struct FontData* font = NULL;  // Pointer to loaded font data
+    char textFilename[FILENAME_SIZE];  // Name of the text file to process
+    char fontFilename[FILENAME_SIZE];  // Name of the font file to load
 
-    // Required port initialization
+    /* Initialize the RS232 port for robot communication */
     if (CanRS232PortBeOpened() == -1) {
-        printf("\nUnable to open the COM port (specified in serial.h)");
-        exit(0);
+        printf("[ERROR] Unable to open the COM port (specified in serial.h)\n");
+        exit(EXIT_FAILURE);  // Use standard exit codes for clarity
     }
 
-    // Robot wake-up sequence (must preserve)
-    printf("\nAbout to wake up the robot\n");
+    /* Wake up the robot */
+    printf("[INFO] About to wake up the robot\n");
     sprintf(buffer, "\n");
-    PrintBuffer(&buffer[0]);
-    Sleep(100);
+    PrintBuffer(buffer);
+    Sleep(100);  // Synchronization delay
     WaitForDollar();
 
-    // Initialize robot (must preserve)
+    /* Initialize robot position */
     sprintf(buffer, "G1 X0 Y0 F1000\n");
     SendCommands(buffer);
     sprintf(buffer, "M3\n");
@@ -43,126 +59,129 @@ int main() {
     sprintf(buffer, "S0\n");
     SendCommands(buffer);
 
-    // Prompt for text height
+    /* Get text height with validation */
     do {
-        printf("Enter text height (4-10mm): ");
-        scanf("%f", &height);
-    } while (height < 4 || height > 10);
+        printf("Enter text height (%.1f-%.1f mm): ", MIN_HEIGHT, MAX_HEIGHT);
+        if (scanf("%f", &height) != 1 || height < MIN_HEIGHT || height > MAX_HEIGHT) {
+            printf("[ERROR] Invalid input. Please enter a value between %.1f and %.1f.\n", MIN_HEIGHT, MAX_HEIGHT);
+            while (getchar() != '\n');  // Clear invalid input from the buffer
+        } else {
+            break;
+        }
+    } while (true);
 
-    // Load font data with error handling
+    /* Load font data */
     while (true) {
         printf("Enter font file name: ");
         scanf("%s", fontFilename);
 
-        printf("Loading font data...\n");
+        printf("[INFO] Loading font data...\n");
         font = storeFontData(fontFilename);
         if (!font) {
             printf("[ERROR] Could not load font file. Please try again.\n");
-            continue;  // Prompt for the font file name again
+            continue;
         }
-        displayProgress(STATE_FONT_LOADED);
-        break;  // Exit the loop if the font is loaded successfully
+        printf("[INFO] Font loaded successfully!\n");
+        break;
     }
 
-    // Prompt for text file name with error handling
-    while (true) {
+    /* Process text file */
+    printf("Enter text file name: ");
+    scanf("%s", textFilename);
+    printf("[INFO] Processing text file...\n");
+
+    while (processTextFile(textFilename, font, height) != SUCCESS) {
+        printf("[ERROR] Text processing failed. Please try again.\n");
         printf("Enter text file name: ");
         scanf("%s", textFilename);
-
-        // Process text file
-        printf("Processing text file...\n");
-        displayProgress(STATE_PROCESSING_TEXT);
-
-        if (!processTextFile(textFilename, font, height)) {
-            printf("[ERROR] Text processing failed. Please try again.\n");
-            continue;  // Prompt for the text file name again
-        } else {
-            displayProgress(STATE_COMPLETE);
-            printf("Text processing complete!\n");
-            break;  // Exit the loop if the text file is processed successfully
-        }
     }
 
+    printf("[INFO] Text processing complete!\n");
 
-    // Cleanup
-    if (font) freeFontData(font);
-    CloseRS232Port();  // Required cleanup
-    printf("Com port now closed\n");
+    /* Cleanup */
+    if (font) {
+        freeFontData(font);  // Free dynamically allocated memory
+    }
 
-    return 0;
+    /* Return pen to origin after drawing finished */
+    SendCommands("G0 X0 Y0\n");
+
+    CloseRS232Port();  // Ensure the port is properly closed
+    printf("[INFO] COM port now closed\n");
+
+
+    return EXIT_SUCCESS;  // Program completed successfully
 }
 
-void SendCommands(char* buffer) {
-    PrintBuffer(buffer);
-    WaitForReply();
-    Sleep(100);
-}
-
+/**
+ * Processes a text file by sending G-code commands for each word/line to the robot.
+ * 
+ * @param filename The name of the text file to process.
+ * @param font Pointer to the loaded font data structure.
+ * @param height Height of the text to be plotted.
+ * @return SUCCESS if the processing was successful; an error code otherwise.
+ */
 int processTextFile(const char* filename, struct FontData* font, float height) {
+    printf("[DEBUG] Starting text processing...\n");
+
     FILE* file = fopen(filename, "r");
     if (!file) {
-        printf("\n[ERROR] Could not open text file: %s\n", filename);
-        return 0;
+        printf("[ERROR] Could not open text file: %s\n", filename);
+        return EXIT_FAILURE;  // Return failure if file cannot be opened
     }
-
-    // Start timing
-    clock_t start_time = clock();
 
     char currentChar;
     char word[256] = {0};
     int wordIndex = 0;
     float currentX = 0.0f;
-    float currentY = 0.0f;
-    int wordCount = 0;
+    float currentY = -height;  // Start the first line below the Y=0 line
     int lineCount = 1;
-
-    printf("\nProcessing text file: %s\n", filename);
-    printf("----------------------------------------\n");
-    printf("Height: %.2f mm\n", height);
-    printf("Maximum line width: 100 mm\n");
-    printf("----------------------------------------\n\n");
 
     while ((currentChar = fgetc(file)) != EOF) {
         if (currentChar == ' ' || currentChar == '\n') {
-            // End of word reached
             word[wordIndex] = '\0';
-            
-            // Display progress
-            printf("\rProcessing Word %d (Line %d): '%s'", ++wordCount, lineCount, word);
-            fflush(stdout);
-            
-            processWord(word, font, &currentX, &currentY, height);
+            if (wordIndex > 0) {
+                if (processWord(word, font, &currentX, &currentY, height) != SUCCESS) {
+                    printf("[ERROR] Word processing failed for '%s'\n", word);
+                    fclose(file);  // Ensure file is closed before returning
+                    return EXIT_FAILURE;
+                }
+            }
             wordIndex = 0;
-            
+
             if (currentChar == '\n') {
                 lineCount++;
-                handleLineBreak(&currentX, &currentY);
-                printf("\n");  // New line in console for better readability
+                if (handleLineBreak(&currentX, &currentY, &height) != SUCCESS) {
+                    printf("[ERROR] Line break failed at line %d\n", lineCount);
+                    fclose(file);
+                    return EXIT_FAILURE;
+                }
             }
         } else {
             word[wordIndex++] = currentChar;
         }
     }
 
-    // Process last word if exists
     if (wordIndex > 0) {
         word[wordIndex] = '\0';
-        printf("\rProcessing Word %d (Line %d): '%s'", ++wordCount, lineCount, word);
-        processWord(word, font, &currentX, &currentY, height);
+        if (processWord(word, font, &currentX, &currentY, height) != SUCCESS) {
+            printf("[ERROR] Word processing failed for '%s'\n", word);
+            fclose(file);
+            return EXIT_FAILURE;
+        }
     }
 
-    // Calculate time taken
-    clock_t end_time = clock();
-    double time_taken = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
-
-    printf("\n\nText Processing Summary:\n");
-    printf("----------------------------------------\n");
-    printf("Total Words Processed: %d\n", wordCount);
-    printf("Total Lines: %d\n", lineCount);
-    printf("Final Position: X=%.2f, Y=%.2f\n", currentX, currentY);
-    printf("Time Taken: %.2f seconds\n", time_taken);
-    printf("----------------------------------------\n");
-
     fclose(file);
-    return 1;
+    return SUCCESS;
+}
+
+/**
+ * Sends G-code commands to the robot and ensures synchronization.
+ * 
+ * @param buffer Null-terminated string containing the G-code command.
+ */
+void SendCommands(char* buffer) {
+    PrintBuffer(buffer);
+    WaitForReply();
+    Sleep(100);  // Required delay for synchronization
 }

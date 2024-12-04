@@ -154,7 +154,7 @@ int PrintBuffer (char *buffer)
 int WaitForReply (void)
 {
     char c;
-    c = getchar();
+    //c = getchar();
     return (0);
 }
 

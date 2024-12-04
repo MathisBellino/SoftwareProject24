@@ -1,18 +1,17 @@
-#include <stdio.h>
-#include <string.h>
-
-
 #ifndef SERIAL_H_INCLUDED
 #define SERIAL_H_INCLUDED
 
+#include <stdio.h>
+#include <string.h>
 
-#define cport_nr    5                  /* COM number minus 1 */
-#define bdrate      115200              /* 115200  */
+#define cport_nr    5        /* COM number minus 1 */
+#define bdrate      115200   /* 115200 baud */
 
-int PrintBuffer (char *buffer);                 //JIB: Needed to match the function
-int WaitForReply (void);                        // Wit for OK function
-int WaitForDollar (void);                       // Wait for '$' function (for startup)
-int CanRS232PortBeOpened ( void );              // Port open check
-void CloseRS232Port (void);
+int PrintBuffer(char* buffer);
+int WaitForReply(void);
+int WaitForDollar(void);
+int CanRS232PortBeOpened(void);
+void CloseRS232Port(void);
+void SendCommands(char* buffer);
 
-#endif // SERIAL_H_INCLUDED
+#endif
