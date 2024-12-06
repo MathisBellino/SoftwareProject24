@@ -45,7 +45,7 @@ int main() {
     }
 
     /* Wake up the robot */
-    printf("[INFO] About to wake up the robot\n");
+    printf("About to wake up the robot\n");
     sprintf(buffer, "\n");
     PrintBuffer(buffer);
     Sleep(100);  // Synchronization delay
@@ -75,20 +75,20 @@ int main() {
         printf("Enter font file name: ");
         scanf("%s", fontFilename);
 
-        printf("[INFO] Loading font data...\n");
+        printf("Loading font data...\n");
         font = storeFontData(fontFilename);
         if (!font) {
             printf("[ERROR] Could not load font file. Please try again.\n");
             continue;
         }
-        printf("[INFO] Font loaded successfully!\n");
+        printf("Font loaded successfully!\n");
         break;
     }
 
     /* Process text file */
     printf("Enter text file name: ");
     scanf("%s", textFilename);
-    printf("[INFO] Processing text file...\n");
+    printf("Processing text file...\n");
 
     while (processTextFile(textFilename, font, height) != SUCCESS) {
         printf("[ERROR] Text processing failed. Please try again.\n");
@@ -96,7 +96,7 @@ int main() {
         scanf("%s", textFilename);
     }
 
-    printf("[INFO] Text processing complete!\n");
+    printf("Text processing complete!\n");
 
     /* Cleanup */
     if (font) {
@@ -107,7 +107,7 @@ int main() {
     SendCommands("G0 X0 Y0\n");
 
     CloseRS232Port();  // Ensure the port is properly closed
-    printf("[INFO] COM port now closed\n");
+    printf("COM port now closed\n");
 
 
     return EXIT_SUCCESS;  // Program completed successfully
