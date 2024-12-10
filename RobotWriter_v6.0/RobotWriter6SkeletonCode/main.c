@@ -159,6 +159,7 @@ int processTextFile(const char* filename, struct FontData* font, float height) {
             }
         } else {
             word[wordIndex++] = currentChar;
+            currentX = currentX + height/18.0f;
         }
     }
 
