@@ -4,25 +4,23 @@
  *
  * Purpose: Memory management for font data structures
  *          Handles cleanup of dynamically allocated font data
- * * This function frees the memory used by the strokes of each character
- * and the font data structure itself to avoid memory leaks.
+ *          This function frees the memory used by the strokes of each character
+ *          and the font data structure itself to avoid memory leaks.
  * 
  * Author: [Mathis Bellino]
  * Student ID: [20342807]
+ * 
  * Date: December 2024
+ *  * @param font Pointer to the font data structure to be freed.
+ *
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "font.h"
 
-/**
- * Frees dynamically allocated memory for the font data structure.
- * This function frees the memory used by the strokes of each character
- * and the font data structure itself to avoid memory leaks.
- * 
- * @param font Pointer to the font data structure to be freed.
- */
+
+
 
 void freeFontData(struct FontData* font) {
     // Check if the font pointer is valid before attempting to free
