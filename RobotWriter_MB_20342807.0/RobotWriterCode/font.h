@@ -43,4 +43,4 @@ int generateGCodeForCharacter(char c, struct FontData* font,
 int handleLineBreak(float* currentX, float* currentY, float* height); 
 int processWord(const char* word, struct FontData* font, float* currentX, float* currentY, float height);
 int processTextFile(const char* filename, struct FontData* font, float height);
-#endif /* FONT_H */
+#endif 

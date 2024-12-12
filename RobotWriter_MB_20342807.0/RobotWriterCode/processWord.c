@@ -1,13 +1,21 @@
-/*
+/**
  * processWord.c
  * Part of CNC Plotter Project for MMME3085
  * 
  * Purpose: Processes individual words for plotter drawing
- * Handles word placement, line breaks, and character drawing
+ *          Handles word placement, line breaks, and character drawing
  * 
  * Author: [Mathis Bellino]
  * Student ID: [20342807]
  * Date: December 2024
+ * 
+ * @param word Null-terminated string containing word to process
+ * @param font Pointer to font data structure
+ * @param currentX Pointer to current X position
+ * @param currentY Pointer to current Y position 
+ * @param height Text height in millimeters
+ * @return SUCCESS or error code
+ * 
  */
 
 #include "font.h"
@@ -38,7 +46,7 @@ int processWord(const char* word, struct FontData* font, float* currentX, float*
 
     // Process each character in the word
     for (int i = 0; word[i] != '\0'; i++) {
-        char c = word[i];
+        char c = word[i];[]
         if (font->characters[(int)c].numStrokes > 0) {  // Only process valid characters
             int result = generateGCodeForCharacter(c, font, currentX, currentY, height);
             if (result != SUCCESS) {

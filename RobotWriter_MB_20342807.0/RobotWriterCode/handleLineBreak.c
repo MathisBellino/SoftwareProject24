@@ -1,4 +1,4 @@
-/*
+/**
  * handleLineBreak.c
  * Part of CNC Plotter Project for MMME3085
  *
@@ -8,6 +8,12 @@
  * Author: [Mathis Bellino]
  * Student ID: [20342807]
  * Date: December 2024
+ * 
+ * @param currentX Pointer to current X position to be reset
+ * @param currentY Pointer to current Y position to be updated
+ * @param height Pointer to text height for spacing calculations
+ * @return SUCCESS or error code
+ * 
  */
 
 #include <stdio.h>

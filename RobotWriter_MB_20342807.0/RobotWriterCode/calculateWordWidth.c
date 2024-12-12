@@ -4,7 +4,7 @@
  * 
  * 
  * Calculates the total width a word will occupy when drawn
- * Accounts for character spacing and scaling based on desired height
+ * Accounts for character spacing and scaling based on desired height input by user
  *
  * @param word Null-terminated string to calculate width for
  * @param font Pointer to font data containing stroke information
@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include "font.h"
 
-#define BASE_HEIGHT 18
+#define BASE_HEIGHT 18 //from font file specs 
 #define MIN_HEIGHT 4
 #define MAX_HEIGHT 10
 

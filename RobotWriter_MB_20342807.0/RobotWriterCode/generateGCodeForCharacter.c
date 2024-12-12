@@ -1,13 +1,21 @@
 /**
- * generateGCode.c 
+ * generateGCodeForCharacter.c 
  * Part of CNC Plotter Project for MMME3085
  * 
  * Purpose: Converts character stroke data into G-code commands for the plotter
  * Handles pen movement, scaling, and serial communication with the robot.
  * 
- * Author: [Mathis Bellino]
+ *  * Author: [Mathis Bellino]
  * Student ID: [20342807]
  * Date: December 2024 
+ * 
+ * @param c Character to generate G-code for
+ * @param font Pointer to font data structure
+ * @param currentX Pointer to current X position (updated by function)
+ * @param baselineY Pointer to baseline Y position
+ * @param height Desired character height in mm (4-10mm)
+ * @return SUCCESS or error code
+ *
  */
 
 #include "font.h"
@@ -22,18 +30,6 @@
 /* Track current pen state to minimize unnecessary pen movements */
 static int currentPenState = 0;  // 0 = up, 1 = down
 
-/**
- * Generates G-code commands for drawing a single character
- * Scales the character data according to requested height
- * Handles pen movements and drawing operations
- * 
- * @param c Character to generate G-code for
- * @param font Pointer to font data structure
- * @param currentX Pointer to current X position (updated by function)
- * @param baselineY Pointer to baseline Y position
- * @param height Desired character height in mm (4-10mm)
- * @return SUCCESS or error code
- */
 int generateGCodeForCharacter(char c, struct FontData* font, 
                             float* currentX, float* baselineY, float height) {
     /* Parameter validation */

@@ -1,4 +1,4 @@
-/*
+/**
  * main.c
  * Part of CNC Plotter Project for MMME3085
  * 
@@ -9,6 +9,9 @@
  * Author: [Mathis Bellino]
  * Student ID: [20342807]
  * Date: December 2024
+ * 
+ * @return EXIT_SUCCESS on successful completion, EXIT_FAILURE on error
+ * 
  */
 
 #include <stdio.h>

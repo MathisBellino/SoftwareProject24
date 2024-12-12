@@ -1,7 +1,18 @@
 /**
- * Stores font data from file using dynamic array allocation within structures
- * Follows lecture patterns for handling nested structure arrays
+ * storeFontData.c
+ * Part of CNC Plotter Project for MMME3085
+ *
+ * Purpose: Loads and stores font data from file using dynamic allocation
+ *          Follows lecture patterns for handling nested structure arrays
+ *
+ * Author: [Mathis Bellino]
+ * Student ID: [20342807]
+ * Date: December 2024
+ * 
+ * @param filename Path to the font data file to load
+ * @return Pointer to populated FontData structure, or NULL on error
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>  // For Sleep
