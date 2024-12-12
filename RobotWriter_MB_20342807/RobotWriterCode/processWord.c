@@ -46,7 +46,7 @@ int processWord(const char* word, struct FontData* font, float* currentX, float*
 
     // Process each character in the word
     for (int i = 0; word[i] != '\0'; i++) {
-        char c = word[i];[]
+        char c = word[i];
         if (font->characters[(int)c].numStrokes > 0) {  // Only process valid characters
             int result = generateGCodeForCharacter(c, font, currentX, currentY, height);
             if (result != SUCCESS) {
